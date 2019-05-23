@@ -1,0 +1,19 @@
+{
+  "name": "BE-for-Hondt",
+  "version": "1.0.0",
+  "scripts": {},
+  "dependencies": {
+    "express": "^4.16.2",
+    "global": "^4.3.2",
+    "mongodb": "^3.2.5",
+    "nodemon": "^1.17.3",
+    "prettier": "^1.17.1",
+    "socket.io": "^2.1.0"
+  },
+  "devDependencies": {
+    "concurrently": "^3.5.0"
+  },
+  "main": "server.js",
+  "author": "Xavier Simó <xsimov@gmail.com>",
+  "license": "MIT"
+}
