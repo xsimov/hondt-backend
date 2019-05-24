@@ -19,7 +19,11 @@ mongo.connect(url, (err, client) => {
   }
 
   const getSessionId = () => {
-    const sessionId = Math.floor(Math.random() * 16777215).toString(16)
+    let accum = ""
+    for (i = 0; i < 64; i++) {
+      accum = accum + Math.round(Math.random())
+    }
+    const sessionId = parseInt(accum, 2).toString(16)
     if (keysForSessionId[sessionId]) return getSessionId()
 
     keysForSessionId[sessionId] = true
