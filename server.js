@@ -68,6 +68,7 @@ mongo.connect(url, (err, client) => {
         if (err) console.error(err)
 
         socket.emit("update", {
+          sessionId: msg.sessionId,
           config: item.config,
         })
       })
