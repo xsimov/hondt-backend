@@ -33,9 +33,6 @@ mongo.connect(url, (err, client) => {
         { $set: { config: msg.data } },
         (err, item) => {
           if (err) console.error(err)
-
-          console.log("msg", msg)
-          console.log("returned from saving", item)
         }
       )
 
@@ -52,12 +49,10 @@ mongo.connect(url, (err, client) => {
           (err, result) => {
             if (err) console.error(err)
 
-            console.log(result)
             keysForSessionId[msg.sessionId] = true
           }
         )
 
-        console.log("sending default config")
         socket.emit("update", {
           config: defaultConfig,
         })
@@ -68,7 +63,6 @@ mongo.connect(url, (err, client) => {
       collection.findOne({ sessionId: msg.sessionId }, (err, item) => {
         if (err) console.error(err)
 
-        console.log("loading", item)
         socket.emit("update", {
           config: item.config,
         })
@@ -76,15 +70,14 @@ mongo.connect(url, (err, client) => {
     })
 
     socket.on("create", function(msg) {
+      const newSessionId = getSessionId()
       collection.insertOne(
-        { sessionId: getSessionId(), config: defaultConfig },
+        { sessionId: newSessionId, config: defaultConfig },
         (err, result) => {
           if (err) console.error(err)
-
-          console.log(result)
         }
       )
-      socket.emit("created", { sessionId: sessionId })
+      socket.emit("created", { sessionId: newSessionId })
     })
   })
 })
