@@ -117,8 +117,26 @@ mongo.connect(url, (err, client) => {
       })
     })
 
+    socket.on("duplicate", function(msg) {
+      const newSessionId = getSessionId()
+
+      collection.insertOne(
+        {
+          adminId: socket.id,
+          sessionId: newSessionId,
+          config: msg.data,
+        },
+        (err, result) => {
+          if (err) console.error(err)
+        }
+      )
+
+      socket.emit("duplicated", {
+        sessionId: newSessionId,
+      })
+    })
+
     socket.on("disconnect", function(msg) {
-      console.log(socket.id)
       collection.updateOne(
         { adminId: socket.id },
         { $set: { adminId: null } },
