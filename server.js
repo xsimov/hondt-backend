@@ -110,7 +110,11 @@ mongo.connect(url, (err, client) => {
           if (err) console.error(err)
         }
       )
-      socket.emit("created", { sessionId: newSessionId })
+      socket.emit("created", {
+        sessionId: newSessionId,
+        admin: true,
+        config: defaultConfig,
+      })
     })
 
     socket.on("disconnect", function(msg) {
