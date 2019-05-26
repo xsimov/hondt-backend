@@ -54,36 +54,43 @@ mongo.connect(url, (err, client) => {
     socket.on("load", function(msg) {
       const adminToken = getSessionId()
 
-      if (!keysForSessionId[msg.sessionId]) {
-        collection.insertOne(
-          {
-            adminToken: adminToken,
-            sessionId: msg.sessionId,
-            config: defaultConfig,
-          },
-          (err, result) => {
-            if (err) console.error(err)
-          }
-        )
+      // if (!keysForSessionId[msg.sessionId]) {
+      //   collection.insertOne(
+      //     {
+      //       adminToken: adminToken,
+      //       sessionId: msg.sessionId,
+      //       config: defaultConfig,
+      //     },
+      //     (err, result) => {
+      //       if (err) console.error(err)
+      //     }
+      //   )
 
-        socket.emit("update", {
-          admin: true,
-          adminToken: adminToken,
-          sessionId: msg.sessionId,
-          config: defaultConfig,
-        })
+      //   socket.emit("update", {
+      //     admin: true,
+      //     adminToken: adminToken,
+      //     sessionId: msg.sessionId,
+      //     config: defaultConfig,
+      //   })
 
-        return
-      }
+      //   return
+      // }
 
       collection.findOne({ sessionId: msg.sessionId }, (err, item) => {
         if (err) console.error(err)
 
-        socket.emit("update", {
+        const isAdmin = item.adminToken === msg.adminToken
+
+        const messageBack = {
           sessionId: msg.sessionId,
-          admin: item.adminToken === msg.adminToken,
+          admin: isAdmin,
           config: item.config,
-        })
+        }
+
+        socket.emit(
+          "update",
+          isAdmin ? { ...messageBack, adminToken: adminToken } : messageBack
+        )
       })
     })
 
