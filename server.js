@@ -33,7 +33,7 @@ mongo.connect(url, (err, client) => {
   io.on("connection", function(socket) {
     socket.on("save", function(msg) {
       collection.findOne({ sessionId: msg.sessionId }, (err, item) => {
-        if (item.adminId !== socket.id) return
+        if (item.adminToken !== msg.adminToken) return
 
         collection.updateOne(
           { sessionId: msg.sessionId },
@@ -52,22 +52,23 @@ mongo.connect(url, (err, client) => {
     })
 
     socket.on("load", function(msg) {
+      const adminToken = getSessionId()
+
       if (!keysForSessionId[msg.sessionId]) {
         collection.insertOne(
           {
-            adminId: socket.id,
+            adminToken: adminToken,
             sessionId: msg.sessionId,
             config: defaultConfig,
           },
           (err, result) => {
             if (err) console.error(err)
-
-            keysForSessionId[msg.sessionId] = true
           }
         )
 
         socket.emit("update", {
           admin: true,
+          adminToken: adminToken,
           sessionId: msg.sessionId,
           config: defaultConfig,
         })
@@ -78,25 +79,9 @@ mongo.connect(url, (err, client) => {
       collection.findOne({ sessionId: msg.sessionId }, (err, item) => {
         if (err) console.error(err)
 
-        let admin = false
-
-        if (!item.adminId) {
-          admin = true
-
-          collection.updateOne(
-            { sessionId: msg.sessionId },
-            { $set: { adminId: socket.id } },
-            (err, item) => {
-              if (err) console.error(err)
-            }
-          )
-        }
-
-        if (item.adminId === socket.id) admin = true
-
         socket.emit("update", {
-          admin: admin,
           sessionId: msg.sessionId,
+          admin: item.adminToken === msg.adminToken,
           config: item.config,
         })
       })
@@ -104,14 +89,21 @@ mongo.connect(url, (err, client) => {
 
     socket.on("create", function(msg) {
       const newSessionId = getSessionId()
+      const adminToken = getSessionId()
+
       collection.insertOne(
-        { adminId: socket.id, sessionId: newSessionId, config: defaultConfig },
+        {
+          adminToken: adminToken,
+          sessionId: newSessionId,
+          config: defaultConfig,
+        },
         (err, result) => {
           if (err) console.error(err)
         }
       )
       socket.emit("created", {
         sessionId: newSessionId,
+        adminToken: adminToken,
         admin: true,
         config: defaultConfig,
       })
@@ -119,10 +111,12 @@ mongo.connect(url, (err, client) => {
 
     socket.on("duplicate", function(msg) {
       const newSessionId = getSessionId()
+      const newAdminToken = getSessionId()
 
       collection.insertOne(
         {
-          adminId: socket.id,
+          adminToken: newAdminToken,
+          admin: true,
           sessionId: newSessionId,
           config: msg.data,
         },
@@ -133,17 +127,8 @@ mongo.connect(url, (err, client) => {
 
       socket.emit("duplicated", {
         sessionId: newSessionId,
+        adminToken: newAdminToken,
       })
-    })
-
-    socket.on("disconnect", function(msg) {
-      collection.updateOne(
-        { adminId: socket.id },
-        { $set: { adminId: null } },
-        (err, item) => {
-          if (err) console.error(err)
-        }
-      )
     })
   })
 })
