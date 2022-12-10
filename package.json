@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {},
   "dependencies": {
-    "express": "^4.16.2",
+    "express": "^4.17.3",
     "global": "^4.3.2",
     "mongodb": "^3.2.5",
     "nodemon": "^1.17.3",
